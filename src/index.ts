@@ -1,11 +1,28 @@
-export function add(numbers: string): number {
-    let integers = numbers.split(',').map(x => parseInt(x));
-    let negatives = integers.filter(x => x < 0);
+import CrawlModel from "./models/base.model";
+import { Query, Response } from "../src/interfaces"
 
-    if (negatives.length > 0)
-        throw new RangeError('Negatives are not allowed: ' + negatives.join(', '));
+class Test extends CrawlModel {
+    constructor(host: string, limit: number, semesterID: string, map: Map<string, string>) {
+        super(host, limit, semesterID, map);
+    }
 
-    return integers
-        .filter(x => x <= 1000)
-        .reduce((a, b) => a + b, 0);
+    protected parse(data: string): object {
+        return {}
+    }
+
+    public async testFetch(query: Query = {}): Promise<Response<string>> {
+        return await this.fetch(query);
+    }
 }
+
+(async function abc() {
+    const map: Map<string, string> = new Map(Object.entries({
+        "a": "b"
+    }));
+
+    const test: Test = new Test("http://112.137.129.87/qldt/as", 0, "100", map);
+    const data = await test.testFetch({ a: "asdasda" });
+
+    console.log(data);
+})();
+

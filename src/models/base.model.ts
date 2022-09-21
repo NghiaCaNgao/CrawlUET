@@ -4,13 +4,14 @@ import { Query, Response } from "../interfaces"
 export default abstract class CrawlModel {
     private readonly HostRegex: RegExp =
         new RegExp(
-            "/^https?:\/\/(www\.)?"
-            + "[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/");
+            "^https?:\/\/(www\.)?"
+            + "[-a-zA-Z0-9@:%._\+~#=]{1,256}\."
+            + "[a-zA-Z0-9()]{1,6}([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$");
 
-    private _host: string;
-    private _limit: number;
-    private _semesterID: string;
-    private _map: Map<string, string>;
+    private _host: string = "";
+    private _limit: number = 0;
+    private _semesterID: string = "";
+    private _map: Map<string, string> = new Map<string, string>;
 
     public get host(): string {
         return this._host;
@@ -62,7 +63,7 @@ export default abstract class CrawlModel {
      */
     private joinParameter(query: Query = {}): string {
         return "?" + Object.keys(query)
-            .map(item => this._map.get(item) + "=" + query[item])
+            .map(item => this.map.get(item) + "=" + (query as any)[item!])
             .join("&");
     }
 
@@ -72,12 +73,25 @@ export default abstract class CrawlModel {
      * @returns {Promise<Response<string>>} 
      */
     protected async fetch(query: Query = {}): Promise<Response<string>> {
-        const response = await axios.get(this.host + this.joinParameter(query));
+        try {
+            const response = await axios.get(this.host + this.joinParameter(query));
 
-        return {
-            status: response.status,
-            data: (response.status === 200) ? response.data : undefined,
-            message: response.statusText
+            return {
+                status: response.status,
+                data: (response.status === 200) ? response.data : undefined,
+                message: response.statusText
+            }
+        } catch (error) {
+            let message = "unknown error";
+            if (error instanceof Error) {
+                message = error.message;
+            }
+
+            return {
+                status: 500,
+                data: "",
+                message: message
+            }
         }
     }
 
@@ -100,10 +114,12 @@ export default abstract class CrawlModel {
                 }
             } else throw new Error(fetchedData.message);
         } catch (error) {
+            let message = "Unknown error";
+            if (error instanceof Error) message = error.message;
             return {
                 status: 400,
                 data: {},
-                message: error.message
+                message
             }
         }
     }
