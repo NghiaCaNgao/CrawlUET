@@ -20,16 +20,22 @@ class Test extends CrawlModel {
     }
 }
 
-describe("Test base crawler class", () => {
-    test("Test constructor", () => {
+// @TEST
+
+describe("Test constructor", () => {
+    test("Test constructor 1", () => {
         expect(() => {
             const test: Test = new Test("a", 10, "100", new Map<string, string>);
         }).toThrow(Error("Unknown host"));
+    });
 
+    test("Test constructor 2", () => {
         expect(() => {
             const test: Test = new Test("https://google.com.vn", -1, "100", new Map<string, string>);
         }).toThrow(Error("Must be greater than or equal zero (unset)"));
+    })
 
+    test("Test constructor 3", () => {
         expect((() => {
             const test: Test = new Test("https://google.com.vn", 0, "100", new Map<string, string>);
 
@@ -38,8 +44,33 @@ describe("Test base crawler class", () => {
                 + test.semesterID + "\n"
                 + test.map;
         })()).toBe("https://google.com.vn\n0\n100\n[object Map]");
-    });
+    })
+})
 
+describe("Test join parameters", () => {
+    test("Test join parameters 1", () => {
+        const map: Map<string, string> = new Map(Object.entries({
+            "a": "b",
+            "g": "c"
+        }));
+
+        const test: Test = new Test("http://112.137.129.87/qldt/as", 0, "100", map);
+        const ans = (test as any).joinParameter({ a: "Ann yeeu emm", g: "Anna bac ninh" });
+        expect(ans).toBe("http://112.137.129.87/qldt/as?b=Ann yeeu emm&c=Anna bac ninh");
+    })
+
+    test("Test join parameters 2", () => {
+        const map: Map<string, string> = new Map(Object.entries({
+            "a": "b",
+        }));
+
+        const test: Test = new Test("http://112.137.129.87/qldt/as", 0, "100", map);
+        const ans = (test as any).joinParameter({ a: "Ann yeeu emm", g: "Anna bac ninh" });
+        expect(ans).toBe("http://112.137.129.87/qldt/as?b=Ann yeeu emm");
+    })
+});
+
+describe("Test fetching data", () => {
     test("Test fetching data 1", async () => {
         const map: Map<string, string> = new Map(Object.entries({
             "a": "b"
@@ -65,11 +96,14 @@ describe("Test base crawler class", () => {
         expect(data).toStrictEqual({
             status: test1Result.status,
             data: test1Result.data,
-            message: test1Result.message
+            message: test1Result.message,
+            config: test1Result.config
         })
     });
+})
 
-    test("Test fetching data 3", async () => {
+describe("Test parsing data", () => {
+    test("Test parsing data 1", async () => {
         const map: Map<string, string> = new Map(Object.entries({
             "a": "b"
         }));
@@ -85,7 +119,7 @@ describe("Test base crawler class", () => {
         })
     });
 
-    test("Test fetching data 4", async () => {
+    test("Test parsing data 2", async () => {
         const map: Map<string, string> = new Map(Object.entries({
             "a": "b"
         }));
@@ -106,7 +140,7 @@ describe("Test base crawler class", () => {
         })
     });
 
-    test("Test fetching data 5", async () => {
+    test("Test parsing data 3", async () => {
         const map: Map<string, string> = new Map(Object.entries({
             "a": "b"
         }));
@@ -128,14 +162,13 @@ describe("Test base crawler class", () => {
         })
     });
 
-    test("Test fetching data 6", async () => {
+    test("Test parsing data 4", async () => {
         const map: Map<string, string> = new Map(Object.entries({
             "a": "b"
         }));
 
         const testFuncFilter = (_data: string): object => {
             throw new Error("I don't know why");
-            return {}
         }
 
         const test: Test = new Test("http://112.137.129.87/qldt/as", 0, "100", map);
@@ -153,4 +186,4 @@ describe("Test base crawler class", () => {
             message: "I don't know why"
         })
     });
-})
+});

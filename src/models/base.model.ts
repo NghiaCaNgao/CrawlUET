@@ -62,8 +62,11 @@ export default abstract class CrawlModel {
      * @returns {string} query string
      */
     private joinParameter(query: Query = {}): string {
-        return "?" + Object.keys(query)
-            .map(item => this.map.get(item) + "=" + (query as any)[item!])
+        return this.host + "?" + Object.keys(query)
+            .map(item => this.map.get(item)
+                ? this.map.get(item) + "=" + (query as any)[item]
+                : "")
+            .filter(item => item)
             .join("&");
     }
 
@@ -74,12 +77,16 @@ export default abstract class CrawlModel {
      */
     protected async fetch(query: Query = {}): Promise<Response<string>> {
         try {
-            const response = await axios.get(this.host + this.joinParameter(query));
+            const uri = this.joinParameter(query);
+            const response = await axios.get(uri);
 
             return {
                 status: response.status,
-                data: (response.status === 200) ? response.data : undefined,
-                message: response.statusText
+                data: response.data,
+                message: response.statusText,
+                config: {
+                    uri
+                }
             }
         } catch (error) {
             let message = "unknown error";
